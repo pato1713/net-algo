@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QGraphicsView, QGraphicsScene
 from networkx_widget.node import Node
-from networkx import DiGraph, random_layout
+from networkx import DiGraph, spring_layout
+from networkx_widget.edge import Edge
 
 
 class View(QGraphicsView):
@@ -17,14 +18,14 @@ class View(QGraphicsView):
         self._nodes_map = {}
 
         self._graph = DiGraph()
-        self._graph.add_edges_from(
+        self._graph.add_weighted_edges_from(
             [
-                ("1", "2"),
-                ("2", "3"),
-                ("3", "4"),
-                ("1", "5"),
-                ("1", "6"),
-                ("1", "7"),
+                ("1", "2", 0.2),
+                ("2", "3", 0.9),
+                ("3", "4", 0.1),
+                ("1", "5", 0.15),
+                ("1", "6", 0.3),
+                ("1", "7", 0.4),
             ]
         )
 
@@ -37,19 +38,18 @@ class View(QGraphicsView):
 
         # Add nodes
         for node in self._graph:
-            print(node)
             item = Node(node)
             self.scene().addItem(item)
             self._nodes_map[node] = item
 
         # Add edges
-        # for a, b in self._graph.edges:
-        #     source = self._nodes_map[a]
-        #     dest = self._nodes_map[b]
-        #     self.scene().addItem(Edge(source, dest))
+        for a, b, data in self._graph.edges.data():
+            source = self._nodes_map[a]
+            dest = self._nodes_map[b]
+            self.scene().addItem(Edge(source, dest, data["weight"]))
 
     def randomize_position(self):
-        positions = random_layout(self._graph)
+        positions = spring_layout(self._graph)
 
         for node, pos in positions.items():
             x, y = pos
