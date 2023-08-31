@@ -19,6 +19,11 @@ class Node(QGraphicsItem):
     def boundingRect(self) -> QRectF:
         return self._rect
 
+    def mark_as_chosen(self):
+        self._color = "#eb4034"
+        self.setZValue(NODE_Z_VALUE + 1)
+        self.update()
+
     def paint(
         self,
         painter: QPainter,

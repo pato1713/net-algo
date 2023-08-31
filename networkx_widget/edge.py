@@ -35,6 +35,11 @@ class Edge(QGraphicsItem):
             self._dest.pos() + self._dest.boundingRect().center(),
         )
 
+    def mark_as_chosen(self):
+        self._color = "#eb4034"
+        self.setZValue(EDGE_Z_VALUE + 1)
+        self.update()
+
     def boundingRect(self) -> QRectF:
         return (
             QRectF(self._line.p1(), self._line.p2())
@@ -49,14 +54,14 @@ class Edge(QGraphicsItem):
 
     def _draw_arrow(self, painter: QPainter, start: QPointF, end: QPointF):
         painter.pen().setBrush(QBrush(self._color))
-        line = QLineF(start, end)
-        angle = -math.atan2(-line.dy(), -line.dx())
+        line = QLineF(end, start)
+        angle = math.atan2(-line.dy(), line.dx())
 
         arrow_head = QPolygonF()
         arrow_head.clear()
-        arrow_head.append(line.p2())
+        arrow_head.append(line.p1())
         arrow_head.append(
-            line.p2()
+            line.p1()
             + QPointF(
                 math.sin(angle + math.pi / 3) * self._arrow_size,
                 math.cos(angle + math.pi / 3) * self._arrow_size,
@@ -64,13 +69,13 @@ class Edge(QGraphicsItem):
         )
 
         arrow_head.append(
-            line.p2()
+            line.p1()
             + QPointF(
                 math.sin(angle + math.pi - math.pi / 3) * self._arrow_size,
                 math.cos(angle + math.pi - math.pi / 3) * self._arrow_size,
             )
         )
-
+        painter.drawLine(line)
         painter.drawPolygon(arrow_head)
 
         path = QPainterPath()
@@ -81,7 +86,6 @@ class Edge(QGraphicsItem):
         length = self._line.length() - self._dest._radius
         x_factor = self._line.dx() * length / self._line.length()
         y_factor = self._line.dy() * length / self._line.length()
-
         return QPointF(self._line.p1().x() + x_factor, self._line.p1().y() + y_factor)
 
     def paint(
@@ -91,7 +95,6 @@ class Edge(QGraphicsItem):
         widget: QWidget | None = None,
     ) -> None:
         painter.setRenderHint(QPainter.Antialiasing)
-
         painter.setPen(
             QPen(
                 QColor(self._color),
@@ -101,8 +104,6 @@ class Edge(QGraphicsItem):
                 Qt.RoundJoin,
             )
         )
-        painter.drawLine(self._line)
-
         self._draw_arrow(painter, self._line.p1(), self._arrow_target())
         painter.setPen(
             QPen(
